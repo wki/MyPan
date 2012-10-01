@@ -20,8 +20,13 @@ sub exists { -d $_[0]->root }
 sub create {
     my $self = shift;
 
-    $self->root->mkpath if !$self->exists;
-    $self->repository->initialize if !$self->repository->is_initialized;
+    if (!$self->exists) {
+        $self->root->mkpath;
+        $self->repository->initialize if !$self->repository->is_initialized;
+        
+        ### TODO: make a directory for keeping uploads
+        ### TODO: init log
+    }
 }
 
 sub save_file {
@@ -30,6 +35,10 @@ sub save_file {
     ...
 }
 
+# strategy:
+#  - keep a list of uploaded files
+#  - remember steps of installation
+#  - allow replay and revert.
 
 
 1;
