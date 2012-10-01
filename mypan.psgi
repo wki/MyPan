@@ -1,3 +1,4 @@
+#!/usr/bin/env perl
 use Plack::Builder;
 use Plack::App::Cascade;
 use Plack::App::File;

@@ -2,53 +2,65 @@ package MyPan::PlackApp;
 use strict;
 use warnings;
 use MyPan::Repository;
+use Try::Tiny;
+use Plack::Request;
 
 use parent 'Plack::Component';
 use Plack::Util::Accessor qw(root);
 
-
 sub call {
     my ($self, $env) = @_;
 
-    my $method_name = lc "handle_$env->{REQUEST_METHOD}";
-
-    if ($self->can($method_name)) {
-        warn "mypan app, method: $method_name --> handle";
-        $self->$method_name($env);
-    } else {
-        warn "mypan app, method: $method_name --> 405";
-        $self->return_405($env);
-    }
+    my $result;
+    try {
+        my $method_name = lc "handle_$env->{REQUEST_METHOD}";
+        $self->error(405, "cannot handle method '$method_name'")
+            if !$self->can($method_name);
+        
+        $result = $self->$method_name($env);
+    } catch {
+        if (ref $_ eq 'ARRAY') {
+            $result = $_;
+        } else {
+            $result = $self->error(400, "Exception: $_");
+        }
+    };
+    
+    return $result;
 }
 
 sub handle_post {
     my ($self, $env) = @_;
     
-    my ($repo, $path) = 
-        $env->{PATH_INFO} =~ m{\A / ([^/+]/[^/+]) (?:/ (.*))? \z}xms;
+    my ($repository_name, $path) = 
+        $env->{PATH_INFO} =~ m{\A /* ([^/]+/[^/]+) (?:/+ (.*))? \z}xms;
     
-    if (!$repo) {
-        $self->return_400($env, 'Repository name required');
+    $self->error(400, 'Repository name required')
+        if !$repository_name;
+    
+    my $repository = MyPan::Repository->new(
+        root => join('/', $self->root, $repository_name),
+    );
+    
+    my $message;
+    if (!$path) {
+        $self->error(400, "Cannot create '$repository_name': already there")
+            if $repository->exists;
+        $repository->create;
+        $message = "Repository '$repository_name' created";
     } else {
-        my $repository = MyPan::Repository->new(
-            root => join('/', $self->root, $repo),
-        );
+        my $request = Plack::Request->new($env);
         
-        if (!@path) {
-            if ($repository->exists) {
-                $self->return_400($env, "Cannot create '$name/$version': already there");
-            } else {
-                ### TODO: error checking
-                $repository->create;
-            }
-        } else {
-            # TODO: find uploads.
-            $repository->save_file($path);
-        }
+        use Data::Dumper;
+        warn Data::Dumper->Dump([$request->uploads], ['uploads']);
+        
+        $self->error(400, "upload 'file' required")
+            if !exists $request->uploads->{file};
+        
+        $repository->save_file($path, $request->uploads->{file}->path);
+        $message = "File '$path' uploaded to '$repository_name'";
     }
     
-    
-    my $message = "POST, path=$env->{PATH_INFO}";
     return [
         200,
         ['Content-Type' => 'text/plain'],
@@ -61,26 +73,19 @@ sub handle_delete {
 
 }
 
-sub return_400 {
-    my ($self, $env, $message) = @_;
+sub error {
+    my ($self, $code, $message) = @_;
     
+    $code //= 400;
     $message //= 'Bad Request';
-    return [
+    my $result = [
         400,
         ['Content-Type' => 'text/plain', 'Content-Length' => length $message],
         [$message]
     ];
-}
-
-sub return_405 {
-    my ($self, $env, $message) = @_;
-
-    $message //= "Cannot handle method: $env->{REQUEST_METHOD}";
-    return [
-        405,
-        ['Content-Type' => 'text/plain', 'Content-Length' => length $message],
-        [$message]
-    ];
+    
+    die $result if !defined wantarray;
+    return $result;
 }
 
 1;
