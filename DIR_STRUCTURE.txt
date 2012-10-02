@@ -37,7 +37,7 @@ Struktur eines Repositories
             |    |
             |    +-- 01mailrc.txt.gz --> ../../../global/01mailrc.txt.gz
             |    |
-            |    +-- id                 -- Inhalt wie bei CPAN
+            |    +-- id/                -- Inhalt wie bei CPAN
             |
             +-- modules
             |    |

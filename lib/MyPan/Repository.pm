@@ -1,7 +1,7 @@
 package MyPan::Repository;
 use Moo;
 use MyPan::Types;
-use CPAN::Repository;
+# use CPAN::Repository;
 
 has root => (
     is       => 'ro',
@@ -24,26 +24,26 @@ sub create {
 
     if (!$self->exists) {
         $self->root->mkpath;
-        $self->repository->initialize if !$self->repository->is_initialized;
+        
+        # $self->repository->initialize if !$self->repository->is_initialized;
         
         ### TODO: make a directory for keeping uploads
         ### TODO: init log
     }
 }
 
-sub save_file {
-    my ($self, $path, $content) = @_;
+sub add_distribution {
+    my ($self, $destination_path, $source_file) = @_;
     
-    warn 'repository :: save file';
+    warn 'repository :: add_distribution';
 }
 
+sub remove_distribution {
+    my ($self, $destination_path) = @_;
+}
 
+sub log {
+    my ($self, $message) = @_;
+}
 
 1;
-
-__END__
-
-$r=CPAN::Repository->new({dir=>"/Users/wolfgang/tmp/myrepo", url=>"http://asdf"});
-$r->initialize unless $r->is_initialized;
-$r->add_author_distribution("WKI", "/Users/wolfgang/proj/Catalyst-Controller-Combine/Catalyst-Controller-Combine-0.14.tar.gz");
-

@@ -57,7 +57,7 @@ sub handle_post {
         $self->error(400, "upload 'file' required")
             if !exists $request->uploads->{file};
         
-        $repository->save_file($path, $request->uploads->{file}->path);
+        $repository->add_distribution($path, $request->uploads->{file}->path);
         $message = "File '$path' uploaded to '$repository_name'";
     }
     
