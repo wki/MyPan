@@ -3,6 +3,8 @@ use Moo;
 use MyPan::Types;
 # use CPAN::Repository;
 
+with 'MyPan::Role::HTTP';
+
 has root => (
     is       => 'ro',
     required => 1,
@@ -30,6 +32,19 @@ sub create {
         ### TODO: make a directory for keeping uploads
         ### TODO: init log
     }
+}
+
+sub global_dir { $_[0]->root->subdir('GLOBAL') }
+
+sub update_global_files {
+    my $self = shift;
+    
+    $self->global_dir->mkpath if !-d $self->global_dir;
+    
+    # my $mail_txt = 
+    $self->global_dir
+         ->file('01mail.txt.gz')
+         ->spew(...)
 }
 
 sub add_distribution {
