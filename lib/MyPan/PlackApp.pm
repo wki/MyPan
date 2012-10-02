@@ -39,7 +39,8 @@ sub handle_post {
         if !$repository_name;
     
     my $repository = MyPan::Repository->new(
-        root => join('/', $self->root, $repository_name),
+        root => $self->root,
+        name => $repository_name,
     );
     
     my $message;
@@ -51,8 +52,8 @@ sub handle_post {
     } else {
         my $request = Plack::Request->new($env);
         
-        use Data::Dumper;
-        warn Data::Dumper->Dump([$request->uploads], ['uploads']);
+        # use Data::Dumper;
+        # warn Data::Dumper->Dump([$request->uploads], ['uploads']);
         
         $self->error(400, "upload 'file' required")
             if !exists $request->uploads->{file};
