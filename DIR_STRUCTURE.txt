@@ -1,0 +1,97 @@
+Struktur eines Repositories
+---------------------------
+
+/root_directory
+  |
+  +-- GLOBAL/
+  |     |
+  |     +-- 01mailrc.txt.gz
+  |     |
+  |     +-- 03modlist.data.gz
+  |     |
+  |     +-- RECENT
+  |
+  +-- hrko
+       |
+       +-- 1.0
+  ...       |
+            +-- uploads
+            |    |
+            |    +-- 000/               -- Uploads für Revision 0 - 99
+            |    |    |
+            |    |    +-- 00000-WKI-Catalyst-Controller-Combine-0.07.tar.gz
+            |    |    |
+            |    |    +-- 00001-WKI-Catalyst-View-Something-0.13.tar.gz
+            |    |
+            |    +-- 001/               -- Uploads für Revision 100 - 199
+            |
+            +-- log
+            |    |
+            |    +-- revisions.txt      -- einzelne Revisionen
+            |    |
+            |    +-- update.log
+            |    |
+            |    +-- access.log
+            |
+            +-- authors
+            |    |
+            |    +-- 01mailrc.txt.gz --> ../../../global/01mailrc.txt.gz
+            |    |
+            |    +-- id                 -- Inhalt wie bei CPAN
+            |
+            +-- modules
+            |    |
+            |    +-- 02packages.details.txt.gz
+            |    |
+            |    +-- 03modlist.data.gz --> ../../../global/03modlist.data.gz
+            |
+            +-- RECENT --> ../../global/RECENT
+
+
+Format 'revisions.txt'
+ - Revisions-Nr
+ - Operation + / - / >
+ - CPAN Author ID
+ - Datei-Name
+ 
+z.B.:
+00000 + WKI Catalyst-Controller-Combine-0.07.tar.gz
+00001 + WKI Catalyst-View-ByCode-0.13.tar.gz
+00002 > 00000
+...
+
+
+Format 'update.log'
+ - Datum, Zeit
+ - Benutzer (aus auth-Informationen)
+ - IP Adresse
+ - Revision
+ - Art des Requests
+
+
+Format 'access.log'
+ - Datum, Zeit
+ - IP Adresse
+ - URL
+
+
+----
+
+File:         02packages.details.txt
+URL:          http://www.perl.com/CPAN/modules/02packages.details.txt
+Description:  Package names found in directory $CPAN/authors/id/
+Columns:      package name, version, path
+Intended-For: Automated fetch routines, namespace documentation.
+Written-By:   PAUSE version 1.14
+Line-Count:   123003
+Last-Updated: Wed, 26 Sep 2012 03:07:03 GMT
+
+Module::Name              version  r/re/relative/path_of_dist.tar.gz
+(sortiert nach Module::Name)
+---> siehe Dist::Data
+
+
+beim Hinzufügen: passende Zeilen zum hinzugefügten Modul einfügen
+beim Löschen: alle Zeilen dieses Moduls entfernen
+beim Revert: von "null" beginnen, bis wir bei Schritt "x" ankommen.
+

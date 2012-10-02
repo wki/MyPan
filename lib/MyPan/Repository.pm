@@ -37,17 +37,6 @@ sub save_file {
     warn 'repository :: save file';
 }
 
-# strategy:
-#  - keep a list of uploaded files
-#    uploads/
-#      000/           0- 99
-#        00000-WKI-Catalyst-Controller-Combine-0.07.tar.gz
-#      001/         100-199
-#      002/         200-299
-#      999/       99900-99999
-#      files.txt   -- Zuordnung Nr, File
-#  - remember steps of installation
-#  - allow replay and revert.
 
 
 1;
