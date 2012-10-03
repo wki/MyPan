@@ -7,7 +7,7 @@ use base 'Exporter';
 
 our @EXPORT = qw(
     ExistingDir
-    to_Dir
+    to_Dir to_File
 );
 
 sub ExistingDir {
@@ -16,6 +16,10 @@ sub ExistingDir {
 
 sub to_Dir {
     return sub { dir($_[0])->absolute->cleanup }
+}
+
+sub to_File {
+    return sub { file($_[0])->absolute->cleanup }
 }
 
 1;
