@@ -15,22 +15,30 @@ has file => (
 );
 
 sub author_distribution_path {
-    join '/', ($_->[0]->dir_list)[-4 .. -1]
+    my $self = shift;
+    
+    join '/',
+        substr($self->author, 0, 1),
+        substr($self->author, 0, 2),
+        $self->author,
+        $self->file->basename;
 }
 
-sub get_packages {
+sub packages {
     my $self = shift;
 
     my $dist = Dist::Data->new($self->file);
 
-    map {
-        [
-            $_,
-            $dist->packages->{$_}->{version},
-            $self->author_distribution_path
-        ]
-    }
-    keys %{$dist->packages};
+    [
+        sort { $a->{package} cmp $b->{package} }
+        map {
+            {
+                package => $_,
+                version => $dist->packages->{$_}->{version} // 'undef',
+            }
+        }
+        keys %{$dist->packages}
+    ];
 }
 
 1;

@@ -1,0 +1,4 @@
+MANIFEST
+META.yml
+lib/Some/Package.pm
+lib/Some/Package/Xxx.pm

@@ -2,8 +2,11 @@ package MyPan::Repository;
 use Moo;
 use Try::Tiny;
 use Path::Class;
+use MyPan::Packages;
 use MyPan::Types;
 use MyPan::Const;
+
+use feature ':5.10';
 
 with 'MyPan::Role::HTTP';
 
@@ -23,6 +26,18 @@ has dir => (
 );
 
 sub _build_dir { $_[0]->root->subdir($_[0]->name) }
+
+has packages => (
+    is => 'lazy',
+);
+
+sub _build_packages {
+    my $self = shift;
+    
+    my $packages = MyPan::Packages->new(
+        file => $self->global_dir->subdir(MODULE_DIR)->file(PACKAGES_FILE),
+    );
+}
 
 sub revision_file { $_[0]->dir->file('log/revisions.txt') }
 
@@ -86,8 +101,6 @@ sub create {
             => $self->dir->subdir(AUTHOR_DIR)->file(MAILRC_FILE);
         symlink $self->global_dir->file(MODLIST_FILE)
             => $self->dir->subdir(MODULE_DIR)->file(MODLIST_FILE);
-
-        $self->update_package_file;
     }
 }
 
@@ -119,12 +132,6 @@ sub update_global_files {
     }
 }
 
-sub update_package_file {
-    my $self = shift;
-
-    ### TODO
-}
-
 sub add_distribution {
     my ($self, $destination_path, $source_file) = @_;
     
@@ -148,15 +155,12 @@ sub add_distribution {
     $distribution_file->dir->mkpath if !-d $distribution_file->dir;
     symlink $upload_file => $distribution_file;
     
-    # TODO: is there a replacement? --> delete
+    ### TODO: replacement for an existing module? --> remove before.
     
-    my $fh = $self->revision_file->open('>>');
-    printf $fh "%05d + %s %s\n",
-        $self->next_revision,
-        $author, 
-        $filename;
+    $self->packages->add_distribution($author, $distribution_file);
+    $self->packages->save;
     
-    $self->clear_revisions;
+    $self->_add_revision('+', $author, $filename);
 }
 
 sub _split_path {
@@ -187,8 +191,34 @@ sub _calculate_distribution_file {
                 $filename)
 }
 
+sub _add_revision {
+    my $self = shift;
+    
+    my $fh = $self->revision_file->open('>>');
+    say $fh
+        join(' ',
+             sprintf('%05d', $self->next_revision),
+             @_);
+    $fh->close;
+
+    $self->clear_revisions;
+}
+
 sub remove_distribution {
     my ($self, $destination_path) = @_;
+    
+    my ($author, $filename) = $self->_split_path($destination_path);
+    my $distribution_file =
+        $self->_calculate_distribution_file(
+            $author, $filename
+        );
+    
+    unlink $distribution_file;
+
+    $self->packages->remove_distribution($author, $distribution_file);
+    $self->packages->save;
+    
+    $self->_add_revision('-', $author, $filename);
 }
 
 sub log {
