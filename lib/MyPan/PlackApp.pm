@@ -29,6 +29,9 @@ sub call {
     return $result;
 }
 
+# POST /hrko/1.0                                    --> create repository
+# POST /hrko/1.0/WKI/Catalyst-Thing-0.01.tar.gz     --> upload dist
+# TODO: POST /hrko/1.0/-revert/34                   --> go to rev 34
 sub handle_post {
     my ($self, $env) = @_;
     
@@ -58,6 +61,7 @@ sub handle_post {
         $self->error(400, "upload 'file' required")
             if !exists $request->uploads->{file};
         
+        warn "Upload file (${\$request->uploads->{file}->path}) size: " . -s $request->uploads->{file}->path;
         $repository->add_distribution($path, $request->uploads->{file}->path);
         $message = "File '$path' uploaded to '$repository_name'";
     }
@@ -69,6 +73,9 @@ sub handle_post {
     ];
 }
 
+# DELETE /-repo/hrko/1.0                            -- whole repo
+# DELETE /-dist/hrko/1.0/WKI/Thing-0.01.tar.gz      -- one distribution
+# TODO: DELETE /-rev/34                             -- delete last revision
 sub handle_delete {
     my ($self, $env) = @_;
 

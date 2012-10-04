@@ -4,9 +4,19 @@ use Dist::Data;
 use MyPan::Types;
 
 has author => (
-    is => 'ro',
-    required => 1,
+    is => 'lazy',
 );
+
+sub _build_author {
+    my $self = shift;
+    
+    my $author = $self->file->dir->basename;
+    
+    die "cannot guess author from file: '${\$self->file}'"
+        if $author eq '.';
+    
+    return $author;
+}
 
 has file => (
     is => 'ro',

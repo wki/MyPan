@@ -3,6 +3,7 @@ use Moo;
 use Try::Tiny;
 use Path::Class;
 use MyPan::Packages;
+use MyPan::Revisions;
 use MyPan::Types;
 use MyPan::Const;
 
@@ -32,10 +33,8 @@ has packages => (
 );
 
 sub _build_packages {
-    my $self = shift;
-    
-    my $packages = MyPan::Packages->new(
-        file => $self->global_dir->subdir(MODULE_DIR)->file(PACKAGES_FILE),
+    MyPan::Packages->new(
+        file => $_[0]->dir->subdir(MODULE_DIR)->file(PACKAGES_FILE),
     );
 }
 
@@ -47,38 +46,9 @@ has revisions => (
 );
 
 sub _build_revisions {
-    my $self = shift;
-
-    my @revisions;
-    try {
-        @revisions =
-            map {
-                m{\A 0* (\d+) \s+ ([+-]) \s+ ([A-Z]+) \s+ (.*) \z}
-                    ? {
-                        revision  => $1,
-                        operation => $2,
-                        author    => $3,
-                        file      => $4 }
-              : m{\A 0* (\d+) \s+ (>) \s+ 0* (\d+) \z}
-                    ? {
-                        revision  => $1,
-                        operation => $2,
-                        revert_to => $3
-                    }
-              : ()
-            }
-            $self->revision_file->slurp(chomp => 1);
-    };
-
-    return \@revisions;
-}
-
-sub next_revision {
-    my $self = shift;
-    
-    scalar @{$self->revisions}
-        ? $self->revisions->[-1]->{revision} + 1
-        : 0;
+    MyPan::Revisions->new(
+        file => $_[0]->dir->subdir(LOG_DIR)->file(REVISIONS_FILE),
+    );
 }
 
 sub exists { -d $_[0]->dir }
@@ -86,7 +56,7 @@ sub exists { -d $_[0]->dir }
 sub create {
     my $self = shift;
 
-    warn "create repository ${\$self->name}";
+    # warn "create repository ${\$self->name}";
 
     if (!$self->exists) {
         $self->root->mkpath;
@@ -95,11 +65,11 @@ sub create {
         $self->dir->subdir($_)->mkpath
             for (UPLOAD_DIR, LOG_DIR, AUTHOR_DIR, MODULE_DIR);
 
-        symlink $self->global_dir->file(RECENT_FILE)
+        link $self->global_dir->file(RECENT_FILE)
             => $self->dir->file(RECENT_FILE);
-        symlink $self->global_dir->file(MAILRC_FILE)
+        link $self->global_dir->file(MAILRC_FILE)
             => $self->dir->subdir(AUTHOR_DIR)->file(MAILRC_FILE);
-        symlink $self->global_dir->file(MODLIST_FILE)
+        link $self->global_dir->file(MODLIST_FILE)
             => $self->dir->subdir(MODULE_DIR)->file(MODLIST_FILE);
     }
 }
@@ -126,7 +96,7 @@ sub update_global_files {
                      $global_file->{url_path} // (),
                      $global_file->{name};
 
-            warn "loading URL: $url";
+            # warn "loading URL: $url";
             $file->spew(http_get($url));
         }
     }
@@ -140,12 +110,12 @@ sub add_distribution {
     my $upload_file =
         $self->dir->file(
             $self->_calculate_upload_path(
-                $author, $filename, $self->next_revision
+                $author, $filename, $self->revisions->next_revision
             )
         );
     
     $upload_file->dir->mkpath if !-d $upload_file->dir;
-    $upload_file->spew(file($source_file)->slurp);
+    $upload_file->spew(scalar file($source_file)->slurp);
     
     my $distribution_file =
         $self->_calculate_distribution_file(
@@ -153,16 +123,18 @@ sub add_distribution {
         );
     
     $distribution_file->dir->mkpath if !-d $distribution_file->dir;
-    symlink $upload_file => $distribution_file;
+    link $upload_file => $distribution_file;
     
-    ### TODO: replacement for an existing module? --> remove before.
+    $self->_remove_distribution_file($self->dir->file(AUTHOR_DIR, 'id', $_))
+        for $self->packages->similar_distributions($distribution_file);
     
     $self->packages->add_distribution($author, $distribution_file);
     $self->packages->save;
     
-    $self->_add_revision('+', $author, $filename);
+    $self->revisions->add('+', $author, $filename);
 }
 
+# path ==> (author, filename)
 sub _split_path {
     my ($self, $path) = @_;
     
@@ -171,6 +143,7 @@ sub _split_path {
     return $parts[-2], $parts[-1];
 }
 
+# author, filename, revision => upload_path
 sub _calculate_upload_path {
     my ($self, $author, $filename, $revision) = @_;
     
@@ -181,6 +154,7 @@ sub _calculate_upload_path {
         $filename;
 }
 
+# author, filename => file
 sub _calculate_distribution_file {
     my ($self, $author, $filename) = @_;
     
@@ -191,22 +165,17 @@ sub _calculate_distribution_file {
                 $filename)
 }
 
-sub _add_revision {
-    my $self = shift;
-    
-    my $fh = $self->revision_file->open('>>');
-    say $fh
-        join(' ',
-             sprintf('%05d', $self->next_revision),
-             @_);
-    $fh->close;
-
-    $self->clear_revisions;
-}
-
 sub remove_distribution {
     my ($self, $destination_path) = @_;
     
+    $self->_remove_distribution_file($destination_path);
+    $self->packages->save;
+    $self->revisions->add('-', $self->_split_path($destination_path));
+}
+
+sub _remove_distribution_file {
+    my ($self, $destination_path) = @_;
+
     my ($author, $filename) = $self->_split_path($destination_path);
     my $distribution_file =
         $self->_calculate_distribution_file(
@@ -214,11 +183,10 @@ sub remove_distribution {
         );
     
     unlink $distribution_file;
+    
+    ### TODO: clean up directories if empty
 
     $self->packages->remove_distribution($author, $distribution_file);
-    $self->packages->save;
-    
-    $self->_add_revision('-', $author, $filename);
 }
 
 sub log {

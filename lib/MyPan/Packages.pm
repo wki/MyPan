@@ -19,6 +19,12 @@ has packages_for => (
     default => sub { {} },
 );
 
+# base package name => 1, eg Moo => 1, Class-Accessor-Lite => 1
+has seen_package => (
+    is => 'rw',
+    default => sub { {} },
+);
+
 sub BUILD {
     my $self = shift;
 
@@ -33,10 +39,21 @@ sub BUILD {
 
         my ($package, $version, $author_distribution_path) =
             split qr{\s+}, $line;
-
+        
         push @{$self->packages_for->{$author_distribution_path}},
             { package => $package, version => $version };
     }
+    
+    $self->seen_package->{_strip_version($_)} = 1
+        for keys %{$self->packages_for};
+}
+
+sub _strip_version {
+    my $distribution = shift;
+    
+    $distribution =~ s{-\d.* \z}{}xms;
+    
+    return $distribution;
 }
 
 sub add_distribution {
@@ -48,6 +65,15 @@ sub add_distribution {
     );
     
     $self->packages_for->{$dist->author_distribution_path} = $dist->packages;
+}
+
+sub similar_distributions {
+    my ($self, $file) = @_;
+
+    my $stripped_name = _strip_version($file->basename);
+    
+    return grep { m{/ \Q$stripped_name\E -\d}xms }
+           keys %{$self->packages_for};
 }
 
 sub remove_distribution {
