@@ -4,10 +4,10 @@ use Plack::App::Cascade;
 use Plack::App::File;
 use MyPan::PlackApp;
 
-# to create a demo repo, execute:
-# perl -MCPAN::Repository -e '$r=CPAN::Repository->new({dir=>"/Users/wolfgang/tmp/myrepo", url=>"http://asdf"}); $r->initialize unless $r->is_initialized; $r->add_author_distribution("WKI", "/Users/wolfgang/proj/Catalyst-Controller-Combine/Catalyst-Controller-Combine-0.14.tar.gz");'
-
+# directory must exist prior to starting the plack app.
 my $ROOT_DIR = '/Users/wolfgang/tmp/myrepo';
+die "Root directory '$ROOT_DIR' does not exist"
+    if !-d $ROOT_DIR;
 
 my $file_app = Plack::App::File->new(root => $ROOT_DIR)->to_app;
 my $pan_app  = MyPan::PlackApp ->new(root => $ROOT_DIR)->to_app;
