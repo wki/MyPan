@@ -55,9 +55,9 @@ Format 'revisions.txt'
  - Datei-Name
  
 z.B.:
-00000 + WKI Catalyst-Controller-Combine-0.07.tar.gz
-00001 + WKI Catalyst-View-ByCode-0.13.tar.gz
-00002 > 00000
+00001 + WKI Catalyst-Controller-Combine-0.07.tar.gz
+00002 + WKI Catalyst-View-ByCode-0.13.tar.gz
+00003 > 00001
 ...
 
 

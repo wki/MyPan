@@ -1,0 +1,4 @@
+MANIFEST
+META.yml
+lib/Another/Module.pm
+lib/Another/Module/Foo.pm

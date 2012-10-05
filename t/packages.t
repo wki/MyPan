@@ -51,9 +51,9 @@ is_deeply
     },
     'version list is correct after adding a distribution';
 
-$packages->save(file($FindBin::Bin, 'data/xxx.gz'));
+$packages->save(file('/tmp/xxx.gz'));
 
-my $p2 = MyPan::Packages->new(file => "$FindBin::Bin/data/xxx.gz");
+my $p2 = MyPan::Packages->new(file => "/tmp/xxx.gz");
 is_deeply
     $p2->packages_for,
     {

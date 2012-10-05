@@ -2,14 +2,13 @@ package MyPan::Repository;
 use Moo;
 use Try::Tiny;
 use Path::Class;
+use LWP::Simple;
 use MyPan::Packages;
 use MyPan::Revisions;
 use MyPan::Types;
 use MyPan::Const;
 
 use feature ':5.10';
-
-with 'MyPan::Role::HTTP';
 
 has root => (
     is       => 'ro',
@@ -96,8 +95,8 @@ sub update_global_files {
                      $global_file->{url_path} // (),
                      $global_file->{name};
 
-            # warn "loading URL: $url";
-            $file->spew(http_get($url));
+            my $content = get($url);
+            $file->spew($content) if $content;
         }
     }
 }
@@ -147,7 +146,7 @@ sub _split_path {
 sub _calculate_upload_path {
     my ($self, $author, $filename, $revision) = @_;
     
-    return sprintf '%03d/%05d-%s-%s',
+    return sprintf 'uploads/%03d/%05d-%s-%s',
         int($revision / 100),
         $revision,
         $author,
