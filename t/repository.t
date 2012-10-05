@@ -108,7 +108,7 @@ is join('|', sort keys %{$repository->packages->packages_for}),
     'two packages registered';
 
 #
-# uploading a similar distribution
+# uploading a similar distribution replaces formerly installed distribution
 #
 $repository->add_distribution(
     'SMART/Some-Package-1.0.tar.gz',
