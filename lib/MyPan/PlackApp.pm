@@ -29,9 +29,18 @@ sub call {
     return $result;
 }
 
-# POST /hrko/1.0                                    --> create repository
-# POST /hrko/1.0/WKI/Catalyst-Thing-0.01.tar.gz     --> upload dist
-# TODO: POST /hrko/1.0/-revert/34                   --> go to rev 34
+# CAUTION: must not interfere with Plack::App::File.
+# GET /                 --> list repositories
+# GET /repo             --> list versions
+# GET /repo/ver         --> list modules
+# GET /repo/ver/author  --> list modules of this author
+sub handle_get {
+    my ($self, $env) = @_;
+    
+}
+
+# POST /hrko/1.0                                --> create repository
+# POST /hrko/1.0/WKI/Catalyst-Thing-0.01.tar.gz --> upload dist
 sub handle_post {
     my ($self, $env) = @_;
     
@@ -73,9 +82,10 @@ sub handle_post {
     ];
 }
 
-# DELETE /-repo/hrko/1.0                            -- whole repo
-# DELETE /-dist/hrko/1.0/WKI/Thing-0.01.tar.gz      -- one distribution
-# TODO: DELETE /-rev/34                             -- delete last revision
+# DELETE /hrko/1.0                          --> whole repo
+# DELETE /hrko/1.0/WKI/Thing-0.01.tar.gz    --> one distribution
+# DELETE /hrko/1.0/42                       --> revert to revision 42
+# DELETE /hrko/1.0/-1                       --> undo last step
 sub handle_delete {
     my ($self, $env) = @_;
 

@@ -1,0 +1,3 @@
+#!/usr/bin/env perl
+use MyPan::App;
+MyPan::App->new_with_options->run;
