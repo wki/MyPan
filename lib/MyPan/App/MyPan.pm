@@ -1,15 +1,39 @@
 package MyPan::App::MyPan;
 use Modern::Perl;
 use Moose;
+use MooseX::Types::Path::Class 'File';
 use MyPan::App::Commands;
 use namespace::autoclean;
 
-with 'MooseX::Getopt::Strict';
+with 'MooseX::SimpleConfig',
+     'MooseX::ConfigFromFile',
+     'MooseX::Getopt::Strict';
+
+has configfile => (
+    traits          => ['Getopt'],
+    is              => 'ro',
+    default         => \&_build_configfile,
+    cmd_aliases     => 'c',
+    documentation   => 'an optional config file to get settings from [$HOME/.mypan.yml]',
+);
+
+sub _build_configfile {
+    my $file = "$ENV{HOME}/.mypan.yml";
+    
+    return -f $file ? $file : ();
+}
+
+has server => (
+    traits      => ['Getopt'],
+    is          => 'ro',
+    isa         => 'Str',
+    # required    => 1,
+);
 
 has commands => (
-    is => 'ro',
-    isa => 'MyPan::App::Commands',
-    lazy_build => 1,
+    is          => 'ro',
+    isa         => 'MyPan::App::Commands',
+    lazy_build  => 1,
 );
 
 sub _build_commands { MyPan::App::Commands->new }
@@ -22,7 +46,7 @@ sub instance { return $instance }
 # hacking an expanded usage format into MooseX::Getopt::Basic internals
 # not fine but useful here
 #
-sub _usage_format { "usage: %c %o command [args] -- try commands for full list" }
+sub _usage_format { "usage: %c %o command [args] -- '%c commands' for list" }
 
 #
 # very bad but necessary hack.
@@ -52,6 +76,8 @@ around new_with_options => sub {
 
 sub run {
     my $self = shift;
+    
+    say 'Server: ', $self->server // '';
     
     my $command_name = shift @{$self->extra_argv}
         or die 'no command given. try --help';
