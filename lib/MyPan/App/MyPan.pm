@@ -77,12 +77,12 @@ around new_with_options => sub {
 sub run {
     my $self = shift;
     
-    say 'Server: ', $self->server // '';
+    # say 'Server: ', $self->server // '';
     
-    my $command_name = shift @{$self->extra_argv}
+    my $command_name = lc shift @{$self->extra_argv}
         or die 'no command given. try --help';
     
-    $self->commands->run_command($command_name);
+    $self->commands->run_command($command_name, $self->extra_argv);
 }
 
 __PACKAGE__->meta->make_immutable;

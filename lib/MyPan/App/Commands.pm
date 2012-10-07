@@ -37,9 +37,9 @@ sub command {
 }
 
 sub run_command {
-    my ($self, $command_name) = @_;
+    my ($self, $command_name, @args) = @_;
     
-    $self->command($command_name)->run;
+    $self->command($command_name)->run(@args);
 }
 
 __PACKAGE__->meta->make_immutable;
