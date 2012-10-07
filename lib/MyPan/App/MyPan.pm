@@ -1,9 +1,28 @@
-package MyPan::App;
+package MyPan::App::MyPan;
 use Modern::Perl;
 use Moose;
+use MyPan::App::Commands;
 use namespace::autoclean;
 
 with 'MooseX::Getopt::Strict';
+
+has commands => (
+    is => 'ro',
+    isa => 'MyPan::App::Commands',
+    lazy_build => 1,
+);
+
+sub _build_commands { MyPan::App::Commands->new }
+
+# pseudo singleton
+my $instance;
+sub instance { return $instance }
+
+#
+# hacking an expanded usage format into MooseX::Getopt::Basic internals
+# not fine but useful here
+#
+sub _usage_format { "usage: %c %o command [args] -- try commands for full list" }
 
 #
 # very bad but necessary hack.
@@ -26,7 +45,7 @@ around new_with_options => sub {
         return $get_options->(@_, '<>', sub { $command = "$_[0]"; die '!FINISH' });
     };
 
-    my $self = $orig->($class, @args);
+    my $self = $instance = $orig->($class, @args);
     unshift @{$self->extra_argv}, $command if $command;
     return $self;
 };
@@ -35,17 +54,9 @@ sub run {
     my $self = shift;
     
     my $command_name = shift @{$self->extra_argv}
-        or die 'no command given. Do not know what to do.';
+        or die 'no command given. try --help';
     
-    my $method = $self->can("handle_$command_name")
-        or die "no method found for handling command '$command_name'";
-    $self->$method;
-}
-
-sub handle_list {
-    my $self = shift;
-    
-    say "list -- still TODO";
+    $self->commands->run_command($command_name);
 }
 
 __PACKAGE__->meta->make_immutable;

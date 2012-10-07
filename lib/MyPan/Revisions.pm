@@ -1,18 +1,22 @@
 package MyPan::Revisions;
-use feature ':5.10';
-use Moo;
-use MyPan::Types;
+use Modern::Perl;
+use Moose;
+use MooseX::Types::Path::Class qw(File);
 use Try::Tiny;
+use namespace::autoclean;
 
 has file => (
-    is => 'ro',
-    coerce => to_File,
-    required => 1,
+    is          => 'ro',
+    isa         => File,
+    coerce      => 1,
+    required    => 1,
 );
 
 has revision_info => (
-    is => 'lazy',
-    clearer => 1,
+    is          => 'ro',
+    isa         => 'ArrayRef',
+    lazy_build  => 1,
+    clearer     => 'clear_revision_info',
 );
 
 sub _build_revision_info {
@@ -63,4 +67,5 @@ sub add {
     $self->clear_revision_info;
 }
 
+__PACKAGE__->meta->make_immutable;
 1;

@@ -1,10 +1,13 @@
 package MyPan::Distribution;
-use Moo;
+use Moose;
+use MooseX::Types::Path::Class qw(File);
 use Dist::Data;
-use MyPan::Types;
+use namespace::autoclean;
 
 has author => (
-    is => 'lazy',
+    is          => 'ro',
+    isa         => 'Str',
+    lazy_build  => 1,
 );
 
 sub _build_author {
@@ -19,9 +22,10 @@ sub _build_author {
 }
 
 has file => (
-    is => 'ro',
-    coerce => to_File,
-    required => 1,
+    is          => 'ro',
+    isa         => File,
+    coerce      => 1,
+    required    => 1,
 );
 
 sub author_distribution_path {
@@ -51,4 +55,5 @@ sub packages {
     ];
 }
 
+__PACKAGE__->meta->make_immutable;
 1;

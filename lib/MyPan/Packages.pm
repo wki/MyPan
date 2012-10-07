@@ -1,28 +1,31 @@
 package MyPan::Packages;
-use Moo;
+use Moose;
+use MooseX::Types::Path::Class qw(File);
 use Carp;
 use Try::Tiny;
 use DateTime;
 use MyPan::Distribution;
-use MyPan::Types;
-
+use namespace::autoclean;
 
 has file => (
-    is => 'ro',
-    coerce => to_File,
-    required => 1,
+    is          => 'ro',
+    isa         => File,
+    coerce      => 1,
+    required    => 1,
 );
 
 # author_distribution_path => [ {package, version}, ... ]
 has packages_for => (
-    is => 'rw',
-    default => sub { {} },
+    is          => 'rw',
+    isa         => 'HashRef',
+    default     => sub { {} },
 );
 
 # base package name => 1, eg Moo => 1, Class-Accessor-Lite => 1
 has seen_package => (
-    is => 'rw',
-    default => sub { {} },
+    is          => 'rw',
+    isa         => 'HashRef',
+    default     => sub { {} },
 );
 
 sub BUILD {
@@ -124,4 +127,5 @@ HEADER
     $fh->close;
 }
 
+__PACKAGE__->meta->make_immutable;
 1;

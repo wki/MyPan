@@ -1,34 +1,41 @@
 package MyPan::Repository;
-use Moo;
+use Moose;
+use MooseX::Types::Path::Class qw(Dir);
 use Try::Tiny;
 use Path::Class;
 use LWP::Simple;
 use MyPan::Packages;
 use MyPan::Revisions;
-use MyPan::Types;
 use MyPan::Const;
-
-use feature ':5.10';
+use namespace::autoclean;
 
 has root => (
-    is       => 'ro',
-    required => 1,
-    coerce   => to_Dir,
+    is          => 'ro',
+    isa         => Dir,
+    required    => 1,
+    coerce      => 1,
 );
 
 has name => (
-    is => 'ro',
-    required => 1,
+    is          => 'ro',
+    isa         => 'Str',
+    required    => 1,
 );
 
 has dir => (
-    is => 'lazy',
+    is          => 'ro',
+    isa         => Dir,
+    lazy_build  => 1,
 );
 
 sub _build_dir { $_[0]->root->subdir($_[0]->name) }
 
 has packages => (
-    is => 'lazy',
+    is          => 'ro',
+    isa         => 'MyPan::Packages',
+    lazy_build  => 1,
+    handles     => [ qw() ],
+    # clearer     => '_clear_packages',
 );
 
 sub _build_packages {
@@ -40,8 +47,10 @@ sub _build_packages {
 sub revision_file { $_[0]->dir->file('log/revisions.txt') }
 
 has revisions => (
-    is      => 'lazy',
-    clearer => 1,
+    is          => 'ro',
+    isa         => 'MyPan::Revisions',
+    lazy_build  => 1,
+    # clearer     => '_clear_revisions',
 );
 
 sub _build_revisions {
@@ -192,4 +201,5 @@ sub log {
     my ($self, $message) = @_;
 }
 
+__PACKAGE__->meta->make_immutable;
 1;
