@@ -16,9 +16,13 @@ has file => (
 
 # author_distribution_path => [ {package, version}, ... ]
 has packages_for => (
+    traits      => ['Hash'],
     is          => 'rw',
     isa         => 'HashRef',
     default     => sub { {} },
+    handles     => {
+        has_distribution => 'exists',
+    },
 );
 
 # base package name => 1, eg Moo => 1, Class-Accessor-Lite => 1

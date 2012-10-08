@@ -122,19 +122,23 @@ sub add_distribution {
             )
         );
     
-    $upload_file->dir->mkpath if !-d $upload_file->dir;
-    $upload_file->spew(scalar file($source_file)->slurp);
-    
     my $distribution_file =
         $self->_calculate_distribution_file(
             $author, $filename
         );
     
-    $distribution_file->dir->mkpath if !-d $distribution_file->dir;
-    link $upload_file => $distribution_file;
+    # TODO: search by author_distribution_path
+    # die "Distribution '$distribution_file' alread there"
+    #     if 1 || $self->packages->has_distribution($distribution_file);
+    
+    $upload_file->dir->mkpath if !-d $upload_file->dir;
+    $upload_file->spew(scalar file($source_file)->slurp);
     
     $self->_remove_distribution_file($self->dir->file(AUTHOR_DIR, 'id', $_))
         for $self->packages->similar_distributions($distribution_file);
+
+    $distribution_file->dir->mkpath if !-d $distribution_file->dir;
+    link $upload_file => $distribution_file;
     
     $self->packages->add_distribution($author, $distribution_file);
     $self->packages->save;

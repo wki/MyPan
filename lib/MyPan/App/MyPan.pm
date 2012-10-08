@@ -24,10 +24,11 @@ sub _build_configfile {
 }
 
 has server => (
-    traits      => ['Getopt'],
-    is          => 'ro',
-    isa         => 'Str',
-    # required    => 1,
+    traits          => ['Getopt'],
+    is              => 'ro',
+    isa             => 'Str',
+  # required        => 1,
+    documentation   => 'the MyPan Server to connect to',
 );
 
 has commands => (

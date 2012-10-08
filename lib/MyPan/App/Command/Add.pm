@@ -23,10 +23,13 @@ sub run {
     
     my $target_repo_path = shift @$args;
     
-    $self->server->send_request(
-        POST => join('/', $target_repo_path, $dist_file->basename),
-        $dist_file
+    $self->server->post(
+        "$target_repo_path/${\$dist_file->basename}",
+        foo => 'bar',
+        file => [ $dist_file->stringify ]
     );
+    
+    say 'Upload OK.';
 }
 
 __PACKAGE__->meta->make_immutable;
