@@ -7,9 +7,6 @@ use Try::Tiny;
 use Path::Class;
 use Plack::Request;
 
-# use parent 'Plack::Component';
-# use Plack::Util::Accessor qw(root);
-
 extends 'Plack::Component';
 
 has root => (
