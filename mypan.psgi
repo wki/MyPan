@@ -9,16 +9,42 @@ my $ROOT_DIR = '/Users/wolfgang/tmp/myrepo';
 die "Root directory '$ROOT_DIR' does not exist"
     if !-d $ROOT_DIR;
 
-my $file_app = Plack::App::File->new(root => $ROOT_DIR)->to_app;
-my $pan_app  = MyPan::PlackApp ->new(root => $ROOT_DIR)->to_app;
+#
+# simple authentication
+#
+sub authenticate {
+    my ($username, $password) = @_;
+    
+    return $username eq 'wolfgang' && $password eq 'secret';
+}
 
-my $cascade  = Plack::App::Cascade->new;
+#
+# the pan_app allows querying and manipulating repositories
+#
+my $pan_app = builder {
+    enable 'Auth::Basic', authenticator => \&authenticate;
+    MyPan::PlackApp->new(root => $ROOT_DIR)->to_app;
+};
+
+#
+# the file_app allows unauthenticated CPAN clients to work
+#
+my $file_app = Plack::App::File->new(root => $ROOT_DIR)->to_app;
+
+#
+# the cascade merges both apps above
+#
+my $cascade = Plack::App::Cascade->new;
 $cascade->catch([405]); # 405 = Method not allowed
 $cascade->add($pan_app);
 $cascade->add($file_app);
 
 my $cascade_app = $cascade->to_app;
 
+#
+# build a total app. Allow more middleware to get added
+#
 builder {
+    # enable 'More::Middleware', arg => 'foo';
     $cascade_app;
 };

@@ -10,8 +10,6 @@ sub description { 'list repositories, versions or packages' }
 sub run {
     my ($self, $args) = @_;
     
-    ### FIXME: must be a bit cleverer. best would be to improve intelligence
-    ###        on the server.
     say $self->server->get(shift @$args // ());
 }
 

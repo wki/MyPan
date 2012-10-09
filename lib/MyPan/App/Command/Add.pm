@@ -1,5 +1,4 @@
 package MyPan::App::Command::Add;
-use Modern::Perl;
 use Moose;
 use Path::Class;
 use namespace::autoclean;
@@ -28,8 +27,6 @@ sub run {
         foo => 'bar',
         file => [ $dist_file->stringify ]
     );
-    
-    say 'Upload OK.';
 }
 
 __PACKAGE__->meta->make_immutable;

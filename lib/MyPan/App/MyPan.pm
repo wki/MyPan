@@ -31,6 +31,19 @@ has server => (
     documentation   => 'the MyPan Server to connect to',
 );
 
+has username => (
+    traits      => ['Getopt'],
+    is          => 'ro',
+    isa         => 'Str',
+    predicate   => 'has_username',
+);
+
+has password => (
+    traits  => ['Getopt'],
+    is      => 'ro',
+    isa     => 'Str',
+);
+
 has commands => (
     is          => 'ro',
     isa         => 'MyPan::App::Commands',

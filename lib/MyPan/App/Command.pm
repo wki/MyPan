@@ -1,22 +1,12 @@
 package MyPan::App::Command;
-use Modern::Perl;
 use Moose;
 use MyPan::App::MyPan;
 use MyPan::App::Server;
 use namespace::autoclean;
 
-sub run {
-    my $self = shift;
-    
-    my $command = lc ref $self;
-    $command =~ s{\A .* ::}{}xms;
-    
-    say "Command '$command' not implemented...";
-}
-
 has server => (
     is => 'ro',
-    # isa => 'MyPan::App::Server',
+    isa => 'MyPan::App::Server',
     lazy_build => 1,
 );
 
@@ -25,6 +15,15 @@ sub _build_server {
 }
 
 sub description { 'no description defined yet' }
+
+sub run {
+    my $self = shift;
+    
+    my $command = lc ref $self;
+    $command =~ s{\A .* ::}{}xms;
+    
+    die "Command '$command' not implemented...";
+}
 
 __PACKAGE__->meta->make_immutable;
 1;

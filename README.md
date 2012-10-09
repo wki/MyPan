@@ -13,6 +13,8 @@ the frontend is a simple commandline tool
     -s host     specify a server (if different from config)
     -c file     specify a different config file
 
+    create <repo/ver>
+    
     add <module-spec> <repo/ver> [/<author>]
     
     delete <repo/ver>

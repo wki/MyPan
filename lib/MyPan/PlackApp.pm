@@ -42,6 +42,7 @@ sub call {
 
 # CAUTION: must not interfere with Plack::App::File.
 #                       scalar dir_list
+# GET /repo/ver/log/update.log
 # GET /                 --> 2   list repositories
 # GET /repo             --> 2   list versions
 # GET /repo/ver         --> 3   list modules
@@ -54,11 +55,13 @@ sub handle_get {
 
     if ($path_length < 3) {
         return $self->list_directory($self->root->subdir($path_info))
-    } else {
+    } elsif ($path_length < 5) {
         my $repository_name = join '/', $path_info->dir_list(1,2);
         my ($author)        = $path_info->dir_list(3,1);
 
         return $self->list_repository($repository_name, $author);
+    } elsif ($path_info =~ m{/log/update.log \z}xms) {
+        return $self->show_file_content($self->root->file($path_info));
     }
     $self->error(405 => "GET '$env->{PATH_INFO}' not handled internally");
 }
@@ -103,6 +106,20 @@ sub list_repository {
     ];
 }
 
+sub show_file_content {
+    my ($self, $file) = @_;
+    
+    warn "FILE: $file...";
+    
+    return [
+        200,
+        ['Content-Type' => 'text/plain'],
+        [
+            scalar $file->slurp
+        ]
+    ];
+}
+
 # POST /hrko/1.0                                --> create repository
 # POST /hrko/1.0/WKI/Catalyst-Thing-0.01.tar.gz --> upload dist
 sub handle_post {
@@ -124,18 +141,18 @@ sub handle_post {
         $self->error(400, "Cannot create '$repository_name': already there")
             if $repository->exists;
         $repository->create;
+        $repository->log("$env->{REMOTE_USER} created repository");
+
         $message = "Repository '$repository_name' created";
     } else {
         my $request = Plack::Request->new($env);
 
-        # use Data::Dumper;
-        # warn Data::Dumper->Dump([$request->uploads], ['uploads']);
-
         $self->error(400, "upload 'file' required")
             if !exists $request->uploads->{file};
 
-        warn "Upload ($path) from file (${\$request->uploads->{file}->path}) size: " . -s $request->uploads->{file}->path;
         $repository->add_distribution($path, $request->uploads->{file}->path);
+
+        $repository->log("$env->{REMOTE_USER} uploaded '$path'");
         $message = "File '$path' uploaded to '$repository_name'";
     }
 

@@ -4,6 +4,7 @@ use MooseX::Types::Path::Class qw(Dir);
 use Try::Tiny;
 use Path::Class;
 use LWP::Simple;
+use DateTime;
 use MyPan::Distribution;
 use MyPan::Packages;
 use MyPan::Revisions;
@@ -210,6 +211,13 @@ sub _remove_distribution_file {
 
 sub log {
     my ($self, $message) = @_;
+    
+    my $now =
+        DateTime->now(time_zone => 'local')
+                ->strftime('%Y-%m-%d %H:%M:%S');
+
+    $self->dir->subdir(LOG_DIR)->file(UPDATELOG_FILE)
+         ->spew(iomode => '>>', "$now $message");
 }
 
 __PACKAGE__->meta->make_immutable;
