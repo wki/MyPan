@@ -3,15 +3,16 @@ use Modern::Perl;
 use base 'Exporter';
 
 our @EXPORT = qw(
-    GLOBAL_DIR UPLOAD_DIR LOG_DIR AUTHOR_DIR MODULE_DIR
+    GLOBAL_DIR UPLOAD_DIR LOG_DIR AUTHOR_DIR AUTHOR_ID_DIR MODULE_DIR
     MAILRC_FILE PACKAGES_FILE MODLIST_FILE REVISIONS_FILE RECENT_FILE
     CPAN_URL
 );
 
-use constant GLOBAL_DIR     => 'GLOBAL';
+use constant GLOBAL_DIR     => '_GLOBAL';
 use constant UPLOAD_DIR     => 'uploads';
 use constant LOG_DIR        => 'log';
 use constant AUTHOR_DIR     => 'authors';
+use constant AUTHOR_ID_DIR  => 'authors/id';
 use constant MODULE_DIR     => 'modules';
 
 use constant MAILRC_FILE    => '01mailrc.txt.gz';

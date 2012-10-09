@@ -3,7 +3,7 @@ Struktur eines Repositories
 
 /root_directory
   |
-  +-- GLOBAL/
+  +-- _GLOBAL/
   |     |
   |     +-- 01mailrc.txt.gz
   |     |
@@ -35,7 +35,7 @@ Struktur eines Repositories
             |
             +-- authors
             |    |
-            |    +-- 01mailrc.txt.gz --> ../../../global/01mailrc.txt.gz
+            |    +-- 01mailrc.txt.gz --> ../../../_GLOBAL/01mailrc.txt.gz
             |    |
             |    +-- id/                -- Inhalt wie bei CPAN
             |
@@ -43,9 +43,9 @@ Struktur eines Repositories
             |    |
             |    +-- 02packages.details.txt.gz
             |    |
-            |    +-- 03modlist.data.gz --> ../../../global/03modlist.data.gz
+            |    +-- 03modlist.data.gz --> ../../../_GLOBAL/03modlist.data.gz
             |
-            +-- RECENT --> ../../global/RECENT
+            +-- RECENT --> ../../_GLOBAL/RECENT
 
 
 Format 'revisions.txt'

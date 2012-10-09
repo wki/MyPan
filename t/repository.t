@@ -23,8 +23,8 @@ is scalar $dir->children, 0, 'root directory is empty before create';
 $repository->create;
 
 foreach my $f (qw(01mailrc.txt.gz 03modlist.data.gz RECENT)) {
-    ok -f "$dir/GLOBAL/$f", "file '$f' exists in GLOBAL";
-    ok -s "$dir/GLOBAL/$f", "file '$f' has nonzero size";
+    ok -f "$dir/_GLOBAL/$f", "file '$f' exists in GLOBAL";
+    ok -s "$dir/_GLOBAL/$f", "file '$f' has nonzero size";
 }
 
 ok -d $repository->dir, 'repository directory is present after creation';
@@ -38,7 +38,7 @@ foreach my $d (qw(uploads log authors modules)) {
 
 foreach my $f (qw(authors/01mailrc.txt.gz modules/03modlist.data.gz RECENT)) {
     my $basename = file($f)->basename;
-    is $dir->file("GLOBAL/$basename")->stat->ino,
+    is $dir->file("_GLOBAL/$basename")->stat->ino,
        $repo_dir->file($f)->stat->ino,
        "file '$f' is hard-linked to Global";
 }
