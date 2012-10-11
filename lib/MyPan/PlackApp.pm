@@ -104,14 +104,12 @@ sub list_repository {
 sub show_file_content {
     my ($self, $file) = @_;
     
-    warn "FILE: $file...";
+    my $content = $file->slurp;
     
     return [
         200,
-        ['Content-Type' => 'text/plain'],
-        [
-            scalar $file->slurp
-        ]
+        ['Content-Type' => 'text/plain', 'Content-Length' => length $content],
+        [ $content ],
     ];
 }
 
@@ -132,11 +130,12 @@ sub handle_post {
     );
 
     my $message;
+    my $user = $env->{REMOTE_USER} // '(unknown)';
     if (!$path) {
         $self->error(400, "Cannot create '$repository_name': already there")
             if $repository->exists;
         $repository->create;
-        $repository->log("$env->{REMOTE_USER} created repository");
+        $repository->log("$user created repository");
 
         $message = "Repository '$repository_name' created";
     } else {
@@ -147,7 +146,7 @@ sub handle_post {
 
         $repository->add_distribution($path, $request->uploads->{file}->path);
 
-        $repository->log("$env->{REMOTE_USER} uploaded '$path'");
+        $repository->log("$user uploaded '$path'");
         $message = "File '$path' uploaded to '$repository_name'";
     }
 
@@ -173,7 +172,7 @@ sub error {
     $code //= 400;
     $message //= 'Bad Request';
     my $result = [
-        400,
+        $code,
         ['Content-Type' => 'text/plain', 'Content-Length' => length $message],
         [$message]
     ];
