@@ -1,10 +1,16 @@
 use strict;
 use warnings;
 use FindBin;
+use lib "$FindBin::Bin/lib";
+use FakeDistribution;
 use Path::Class;
 use Test::More;
 
 use ok 'MyPan::Packages';
+
+my $some_package_003 = FakeDistribution->new(name => 'Some-Package-0.03');
+$some_package_003->add_package('Some::Package', '0.01');
+$some_package_003->add_package('Some::Package::Xxx', '0.02');
 
 my $packages = MyPan::Packages->new(
     file => "$FindBin::Bin/data/02packages.details.txt.gz"
@@ -27,7 +33,7 @@ is_deeply
     'version list is correctly extracted from file';
 
 $packages->add_distribution(
-    WXFOO => file($FindBin::Bin, 'data/Some-Package-0.03.tar.gz')
+    WXFOO => $some_package_003->tar_gz_file
 );
 
 is_deeply
@@ -76,7 +82,7 @@ is_deeply
     'version list from saved file is equal to expected list';
 
 $p2->remove_distribution(
-    WXFOO => file($FindBin::Bin, 'data/Some-Package-0.03.tar.gz')
+    WXFOO => $some_package_003->tar_gz_file
 );
 
 is_deeply

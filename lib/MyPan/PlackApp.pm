@@ -27,11 +27,9 @@ sub call {
 
         $result = $self->$method_name($env);
     } catch {
-        if (ref $_ eq 'ARRAY') {
-            $result = $_;
-        } else {
-            $result = $self->error(400, "Exception: $_");
-        }
+        $result = ref $_ eq 'ARRAY'
+            ? $_
+            : $self->error(400, "Exception: $_");
     };
 
     return $result;
@@ -48,11 +46,11 @@ sub handle_get {
     my ($self, $env) = @_;
 
     my $path_info   = dir($env->{PATH_INFO});
-    my $path_length = scalar $path_info->dir_list;
+    my $nr_path_parts = scalar $path_info->dir_list;
 
-    if ($path_length < 3) {
+    if ($nr_path_parts < 3) {
         return $self->list_directory($self->root->subdir($path_info))
-    } elsif ($path_length < 5) {
+    } elsif ($nr_path_parts < 5) {
         my $repository_name = join '/', $path_info->dir_list(1,2);
         my ($author)        = $path_info->dir_list(3,1);
 
