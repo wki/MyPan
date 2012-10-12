@@ -22,14 +22,14 @@ sub call {
     my $result;
     try {
         my $method_name = lc "handle_$env->{REQUEST_METHOD}";
-        $self->error(405, "cannot handle method '$method_name'")
+        $self->error(405 => "cannot handle method '$method_name'")
             if !$self->can($method_name);
 
         $result = $self->$method_name($env);
     } catch {
         $result = ref $_ eq 'ARRAY'
             ? $_
-            : $self->error(400, "Exception: $_");
+            : $self->error(400 => "Exception: $_");
     };
 
     return $result;
@@ -63,6 +63,9 @@ sub handle_get {
 
 sub list_directory {
     my ($self, $dir) = @_;
+
+    $self->error(400 => "Directory '${\$dir->basename}' does not exist")
+        if !-d $dir;
 
     return [
         200,
@@ -121,7 +124,7 @@ sub handle_post {
     my ($repository_name, $path) =
         $env->{PATH_INFO} =~ m{\A /* ([^/]+/[^/]+) (?:/+ (.*))? \z}xms;
 
-    $self->error(400, 'Repository name required')
+    $self->error(400 => 'Repository name required')
         if !$repository_name;
 
     my $repository = MyPan::Repository->new(
@@ -132,7 +135,7 @@ sub handle_post {
     my $message;
     my $user = $env->{REMOTE_USER} // '(unknown)';
     if (!$path) {
-        $self->error(400, "Cannot create '$repository_name': already there")
+        $self->error(400 => "Cannot create '$repository_name': already there")
             if $repository->exists;
         $repository->create;
         $repository->log("$user created repository");
@@ -141,7 +144,7 @@ sub handle_post {
     } else {
         my $request = Plack::Request->new($env);
 
-        $self->error(400, "upload 'file' required")
+        $self->error(400 => "upload 'file' required")
             if !exists $request->uploads->{file};
 
         $repository->add_distribution($path, $request->uploads->{file}->path);
@@ -163,6 +166,20 @@ sub handle_post {
 # DELETE /hrko/1.0/-1                       --> undo last step
 sub handle_delete {
     my ($self, $env) = @_;
+
+    my ($repository_name, $path) =
+        $env->{PATH_INFO} =~ m{\A /* ([^/]+/[^/]+) (?:/+ (.*))? \z}xms;
+
+    $self->error(400 => 'Repository name required')
+        if !$repository_name;
+
+    my $repository = MyPan::Repository->new(
+        root => $self->root,
+        name => $repository_name,
+    );
+    
+    $self->error(400 => "Repository '$repository_name' does not exist")
+        if !$repository->exists;
 
 }
 

@@ -104,11 +104,14 @@ sub update_global_files {
                      $global_file->{url_path} // (),
                      $global_file->{name};
 
-            my $content = get($url);
+            my $content = $self->_http_get($url);
             $file->spew($content) if $content;
         }
     }
 }
+
+# allow overwriting during test. do not remove!
+sub _http_get { get($_[0]) }
 
 sub add_distribution {
     my ($self, $destination_path, $source_file) = @_;
@@ -185,6 +188,8 @@ sub _calculate_distribution_file {
 
 sub remove_distribution {
     my ($self, $destination_path) = @_;
+    
+    ### FIXME: allow WKI/Some-Module-1.0.tar.gz as $destination_path
 
     $self->_remove_distribution_file($destination_path);
     $self->packages->save;
@@ -217,7 +222,7 @@ sub log {
                 ->strftime('%Y-%m-%d %H:%M:%S');
 
     $self->dir->subdir(LOG_DIR)->file(UPDATELOG_FILE)
-         ->spew(iomode => '>>', "$now $message");
+         ->spew(iomode => '>>', "$now $message\n");
 }
 
 __PACKAGE__->meta->make_immutable;

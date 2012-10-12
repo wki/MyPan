@@ -6,6 +6,7 @@ use FakeDistribution;
 use File::Temp 'tempdir';
 use Path::Class;
 use Test::More;
+use LWP::Simple;
 
 use ok 'MyPan::Repository';
 
@@ -36,6 +37,11 @@ my $repository = MyPan::Repository->new(root => $dir, name => 'foobar/1.0');
 # creation of a repository
 my $repo_dir;
 {
+    no strict 'refs';
+    no warnings 'redefine';
+    local *MyPan::Repository::_http_get = sub { 'foo' };
+    use strict 'refs';
+    
     $repository->create;
     
     foreach my $f (qw(01mailrc.txt.gz 03modlist.data.gz RECENT)) {
@@ -149,5 +155,9 @@ my $repo_dir;
         'two packages registered';
 }
 
+### TODO: remove a distribution
+{
+    my $x;
+}
 
 done_testing;
