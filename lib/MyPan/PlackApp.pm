@@ -181,6 +181,38 @@ sub handle_delete {
     $self->error(400 => "Repository '$repository_name' does not exist")
         if !$repository->exists;
 
+    my $user = $env->{REMOTE_USER} // '(unknown)';
+    my $message;
+    
+    if (! defined $path || $path eq '') {
+        # delete entire repository
+        $repository->dir->traverse(\&_remove_recursive);
+        $message = "removed repository '$repository_name'";
+    } elsif ($path eq '-1') {
+        # undo last step
+        $self->error(400 => 'Undo not implemented yet');
+    } elsif ($path =~ m{\A \d+ \z}xms) {
+        # revert to revision x
+        $self->error(400 => 'Revert not implemented yet');
+    } else {
+        # delete one distribution
+        $repository->remove_distribution($path);
+        $repository->log("$user removed '$path'");
+        $message = "removed distribution '$path'";
+    }
+    
+    return [
+        200,
+        ['Content-Type' => 'text/plain'],
+        [$message],
+    ];
+}
+
+sub _remove_recursive {
+    my ($child, $cont) = @_;
+
+    $cont->() if -d $child;
+    $child->remove;
 }
 
 sub error {

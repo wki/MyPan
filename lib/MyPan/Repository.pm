@@ -1,6 +1,7 @@
 package MyPan::Repository;
 use Moose;
 use MooseX::Types::Path::Class qw(Dir);
+use Carp;
 use Try::Tiny;
 use Path::Class;
 use LWP::Simple;
@@ -189,8 +190,6 @@ sub _calculate_distribution_file {
 sub remove_distribution {
     my ($self, $destination_path) = @_;
     
-    ### FIXME: allow WKI/Some-Module-1.0.tar.gz as $destination_path
-
     $self->_remove_distribution_file($destination_path);
     $self->packages->save;
     $self->revisions->add('-', $self->_split_path($destination_path));
@@ -206,6 +205,9 @@ sub _remove_distribution_file {
     );
     my $distribution_file =
         $self->_calculate_distribution_file($distribution);
+
+    croak "distribution '$destination_path' not found"
+        if !-f $distribution_file;
 
     unlink $distribution_file;
 

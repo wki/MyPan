@@ -118,7 +118,7 @@ my @testcases = (
             req  => [GET => 'http://localhost/hrko/1.0/log/update.log'],
             code => 200,
             content => 
-                "2011-01-28 15:20:23 (unknown) created repository\n".
+                "2011-01-28 15:20:23 (unknown) created repository\n" .
                 "2011-01-28 15:20:23 (unknown) uploaded 'WKI/Some-Package-0.03.tar.gz'\n"
         },
         
@@ -138,12 +138,29 @@ my @testcases = (
             code => 400,
             content => "Repository 'hrko/2.3' does not exist",
         },
+        {
+            name => 'DELETE /hrko/1.0/WKI/Some-Package-0.03.tar.gz',
+            req  => [DELETE => 'http://localhost/hrko/1.0/WKI/Some-Package-0.03.tar.gz'],
+            code => 200,
+            content => "removed distribution 'WKI/Some-Package-0.03.tar.gz'",
+        },
+        {
+            name => 'GET /hrko/1.0/log/update.log',
+            req  => [GET => 'http://localhost/hrko/1.0/log/update.log'],
+            code => 200,
+            content => 
+                "2011-01-28 15:20:23 (unknown) created repository\n" .
+                "2011-01-28 15:20:23 (unknown) uploaded 'WKI/Some-Package-0.03.tar.gz'\n" .
+                "2011-01-28 15:20:23 (unknown) removed 'WKI/Some-Package-0.03.tar.gz'\n"
+        },
+        {
+            name => 'DELETE /hrko/1.0',
+            req  => [DELETE => 'http://localhost/hrko/1.0'],
+            code => 200,
+            content => "removed repository 'hrko/1.0'",
+        },
         
-        ### TODO: add more delete tests 
-        ###       (requires addition of at least 2 more packages)
         ### revert revision
-        ### delete package
-        ### delete repository
     ),
 );
 
@@ -174,8 +191,12 @@ foreach my $testcase (@testcases) {
             my $res = $cb->($req);
             is $res->code, $testcase->{code},
                 "$name: code is $testcase->{code}";
+            
+            my $content_shortened = $testcase->{content};
+            $content_shortened =~ s{\A (.{15}) .*}{$1...}xms;
+            
             is $res->content, $testcase->{content},
-                "$name: content is '$testcase->{content}'";
+                "$name: content is '$content_shortened'";
         };
 }
 
