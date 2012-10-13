@@ -33,11 +33,14 @@ my $file_app = Plack::App::File->new(root => $ROOT_DIR)->to_app;
 
 #
 # the cascade merges both apps above
+#   * try to serve static files unauthenticated first
+#   * then switch to MyPan app with authentication
 #
+
 my $cascade = Plack::App::Cascade->new;
-$cascade->catch([405]); # 405 = Method not allowed
-$cascade->add($pan_app);
+$cascade->catch([404]); # 404 = Not found
 $cascade->add($file_app);
+$cascade->add($pan_app);
 
 my $cascade_app = $cascade->to_app;
 

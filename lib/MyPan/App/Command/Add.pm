@@ -24,7 +24,6 @@ sub run {
     
     $self->server->post(
         "$target_repo_path/${\$dist_file->basename}",
-        foo => 'bar',
         file => [ $dist_file->stringify ]
     );
 }

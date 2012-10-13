@@ -2,6 +2,7 @@ package MyPan::App::MyPan;
 use Modern::Perl;
 use Moose;
 use MooseX::Types::Path::Class 'File';
+use Try::Tiny;
 use MyPan::App::Commands;
 use namespace::autoclean;
 
@@ -9,25 +10,27 @@ with 'MooseX::SimpleConfig',
      'MooseX::ConfigFromFile',
      'MooseX::Getopt::Strict';
 
-has configfile => (
+has '+configfile' => (
     traits          => ['Getopt'],
-    is              => 'ro',
-    default         => \&_build_configfile,
+    default         => "$ENV{HOME}/.mypan.yml",
+    # is              => 'ro',
+    # lazy_build      => 1,
+    # # default         => \&_build_configfile,
     cmd_aliases     => 'c',
     documentation   => 'an optional config file to get settings from [$HOME/.mypan.yml]',
 );
 
-sub _build_configfile {
-    my $file = "$ENV{HOME}/.mypan.yml";
-    
-    return -f $file ? $file : ();
-}
+# sub _build_configfile {
+#     my $file = "$ENV{HOME}/.mypan.yml";
+#     
+#     return -f $file ? $file : ();
+# }
 
 has server => (
     traits          => ['Getopt'],
     is              => 'ro',
     isa             => 'Str',
-  # required        => 1,
+    required        => 1,
     documentation   => 'the MyPan Server to connect to',
 );
 
@@ -58,7 +61,7 @@ sub instance { return $instance }
 
 #
 # hacking an expanded usage format into MooseX::Getopt::Basic internals
-# not fine but useful here
+# is not fine but useful here
 #
 sub _usage_format { "usage: %c %o command [args] -- '%c commands' for list" }
 

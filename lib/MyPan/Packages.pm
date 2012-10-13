@@ -20,9 +20,6 @@ has packages_for => (
     is          => 'rw',
     isa         => 'HashRef',
     default     => sub { {} },
-    handles     => {
-        has_distribution => 'exists',
-    },
 );
 
 # base package name => 1, eg Moo => 1, Class-Accessor-Lite => 1
@@ -61,6 +58,17 @@ sub _strip_version {
     $distribution =~ s{-\d.* \z}{}xms;
     
     return $distribution;
+}
+
+sub has_distribution {
+    my ($self, $author, $filename) = @_;
+
+    my $dist = MyPan::Distribution->new(
+        author => $author,
+        file => $filename
+    );
+    
+    return exists $self->packages_for->{$dist->author_distribution_path};
 }
 
 sub add_distribution {

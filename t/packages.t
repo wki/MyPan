@@ -36,6 +36,12 @@ $packages->add_distribution(
     WXFOO => $some_package_003->tar_gz_file
 );
 
+ok $packages->has_distribution(WXFOO => $some_package_003->tar_gz_file),
+    'package is reported to exist';
+
+ok !$packages->has_distribution(CLEVER => $some_package_003->tar_gz_file),
+    'package with wrong author is not reported to exist';
+
 is_deeply
     $packages->packages_for,
     {

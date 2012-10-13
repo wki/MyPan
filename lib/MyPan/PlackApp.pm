@@ -27,9 +27,12 @@ sub call {
 
         $result = $self->$method_name($env);
     } catch {
-        $result = ref $_ eq 'ARRAY'
-            ? $_
-            : $self->error(400 => "Exception: $_");
+        if (ref $_ eq 'ARRAY') {
+            $result = $_;
+        } else {
+            s{\s+ at \s+ .*? \z}{}xms;
+            $result = $self->error(400 => $_);
+        }
     };
 
     return $result;

@@ -139,9 +139,8 @@ sub add_distribution {
             )
         );
 
-    # TODO: search by author_distribution_path
-    # die "Distribution '$distribution_file' alread there"
-    #     if 1 || $self->packages->has_distribution($distribution_file);
+    die "Distribution '$author/$filename' already there"
+        if $self->packages->has_distribution($author, $filename);
 
     $upload_file->dir->mkpath if !-d $upload_file->dir;
     $upload_file->spew(scalar file($source_file)->slurp);

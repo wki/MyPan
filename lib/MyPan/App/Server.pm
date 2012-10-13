@@ -51,9 +51,10 @@ sub send_request {
     }
     
     my $ua = LWP::UserAgent->new;
+    $ua->agent('mypan-app');
     my $response = $ua->request($request);
     
-    croak $response->status_line if !$response->is_success;
+    croak "Error: ${\$response->content}" if !$response->is_success;
     
     return $response->decoded_content;
 }
