@@ -1,0 +1,13 @@
+Revision history for MyPan
+
+0.02    2012-10-13
+        * switched from Moo to Moose
+        * added commandline app
+        * added classes for handling Distributions, Packages, ...
+        * added lots of tests
+        * psgi server works
+        
+0.01    2012-10-01
+        * first simple psgi app
+        * based on Moo
+        * proof of concept
